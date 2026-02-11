@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taylor — Orden de Servicio</title>
+    <title>Taylor — Orden de Servicio v2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
@@ -18,11 +18,11 @@
             --c-bg: #f4f5f7;
             --c-paper: #fff;
             --c-dark: #2d282e;
-            --c-mid: #2d282e;
+            --c-mid: #6b7280;
             --c-light: #e5e7eb;
             --c-accent: #2563eb;
             --c-accent2: #1e40af;
-            --c-ok: #2d282e;
+            --c-ok: #059669;
             --c-err: #dc2626;
             --radius: 10px;
             --shadow: 0 1px 3px rgba(0, 0, 0, .05), 0 4px 24px rgba(0, 0, 0, .06)
@@ -630,7 +630,8 @@
         body.pdf-mode {
             margin: 0 !important;
             padding: 0 !important;
-            background: #fff !important
+            background: #fff !important;
+            display: block !important
         }
 
         body.pdf-mode .paper {
@@ -640,7 +641,10 @@
             padding: 0 !important;
             border-radius: 0 !important;
             box-shadow: none !important;
-            overflow: visible !important
+            overflow: visible !important;
+            position: relative !important;
+            left: 0 !important;
+            top: 0 !important
         }
 
         body.pdf-mode .hdr {
@@ -726,6 +730,7 @@
             padding-right: 6px !important
         }
 
+        /* Two-column totals in PDF */
         body.pdf-mode .tot-grid {
             grid-template-columns: 1fr 1fr !important;
             gap: 16px !important
@@ -738,6 +743,16 @@
 
         body.pdf-mode .tot-line.final {
             font-size: 11px !important
+        }
+
+        body.pdf-mode .tot-val {
+            font-size: 10px !important
+        }
+
+        /* Ensure inputs in totals render properly */
+        body.pdf-mode .tot-grid input[type="number"] {
+            font-size: 9px !important;
+            border: 1px solid #ccc !important
         }
     </style>
 
@@ -798,8 +813,8 @@
                         value="0" step="0.5" min="0" style="width:60px;font-size:11px" oninput="App.recalc()"></div>
                 <div class="hdr-cell"><span class="fl">Técnico</span><input type="text" id="inTecnico"
                         placeholder="Nombre del técnico"></div>
-                <div class="hdr-cell"><span class="fl">Nombre completo SAT</span><input type="text" id="inNombreSAT"
-                        placeholder="Nombre SAT"></div>
+                <div class="hdr-cell"><span class="fl">Nombre SAT</span><input type="text" id="inNombreSAT"
+                        placeholder="Nombre completo SAT"></div>
             </div>
         </div>
 
@@ -1040,10 +1055,10 @@
                             <th rowspan="2" style="width:70px;vertical-align:middle">Lado</th>
                             <th colspan="3"
                                 style="text-align:center;border-bottom:2px solid var(--c-accent);font-size:10px">
-                                Presión</th>
+                                *Presión*</th>
                             <th colspan="3"
                                 style="text-align:center;border-bottom:2px solid var(--c-accent);font-size:10px">
-                                Temperatura</th>
+                                **Temperatura**</th>
                             <th rowspan="2" style="vertical-align:middle;font-size:8px;line-height:1.2">
                                 Parrilla/<br>Congelador<br>Voltaje</th>
                         </tr>
@@ -1085,15 +1100,15 @@
         <!-- ── TOTALES FINANCIEROS ────────────────────────────────── -->
         <div class="sec">
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px" class="tot-grid">
-                <!-- COL IZQ: Mano de Obra + Desplazamiento (en $) -->
+                <!-- COL IZQ: Mano de Obra + Desplazamiento ($) -->
                 <div class="tot-block">
                     <div class="tot-line"><span class="tot-label">Total Mano de Obra</span><span class="tot-val"
-                            id="outTotalMO">0</span></div>
+                            id="outTotalMO">0 $</span></div>
                     <div class="tot-line"><span class="tot-label"
                             style="display:flex;align-items:center;gap:3px">Desplazamiento
                             <input type="number" id="inDespHoras" value="0" min="0" step="0.5"
                                 style="width:36px;text-align:center;font-size:10px;border:1px solid #ddd;border-radius:3px;padding:1px 2px;font-family:'JetBrains Mono'"
-                                oninput="App.recalc()">h</span><span class="tot-val" id="outDesplaz">0</span></div>
+                                oninput="App.recalc()">h</span><span class="tot-val" id="outDesplaz">0 $</span></div>
                     <div class="tot-line" style="font-weight:600"><span>Sub Total</span><span class="tot-val"
                             id="outSubTotalMO">0.00 $</span></div>
                     <div class="tot-line"><span class="tot-label" style="display:flex;align-items:center;gap:3px">IVA
@@ -1105,7 +1120,7 @@
                     <div class="tot-line final"><span>TOTAL</span><span class="tot-val" id="outTotalMOFinal"
                             style="color:var(--c-dark)">0.00 $</span></div>
                 </div>
-                <!-- COL DER: Repuestos + Otros (en €) -->
+                <!-- COL DER: Repuestos + Otros (€) -->
                 <div class="tot-block">
                     <div class="tot-line"><span class="tot-label">Total Repuestos</span><span class="tot-val"
                             id="outTotalRep">0.00 €</span></div>
@@ -10784,7 +10799,8 @@
                 const mm = String(n.getMonth() + 1).padStart(2, '0');
                 const yyyy = n.getFullYear();
                 const fDate = dd + '-' + mm + '-' + yyyy;
-                document.getElementById("footerFecha").textContent = fDate;
+                const footerEl = document.getElementById("footerFecha");
+                if (footerEl) footerEl.textContent = fDate;
             }
 
             /* ── POPULATE DROPDOWNS ──────────────────────────────── */
@@ -10846,15 +10862,18 @@
                     console.warn("n8n no disponible, ID temporal.", e);
                     ordenId = "T-" + Date.now().toString(36).toUpperCase().slice(-6);
                 }
-                document.getElementById("ordenIdText").textContent = ordenId;
+                const el = document.getElementById("ordenIdText");
+                if (el) el.textContent = ordenId;
             }
 
             /* ── TECH MEMORY ─────────────────────────────────────── */
             function _restoreTech() {
                 const s = localStorage.getItem("taylor_tec");
                 if (s) {
-                    document.getElementById("inTecnico").value = s;
-                    document.getElementById("outNombreTec").value = s;
+                    const tecEl = document.getElementById("inTecnico");
+                    const nomEl = document.getElementById("outNombreTec");
+                    if (tecEl) tecEl.value = s;
+                    if (nomEl) nomEl.value = s;
                 }
             }
             function _bindTechInput() {
@@ -11020,16 +11039,16 @@
                 // ── Left column: Mano de Obra + Desplazamiento ($) ──
                 const horas = parseFloat(document.getElementById("inHoras").value) || 0;
                 const mo = horas * PRECIO_HORA;
-                document.getElementById("outTotalMO").textContent = mo.toFixed(0);
+                document.getElementById("outTotalMO").textContent = mo.toFixed(0) + " $";
                 const despHoras = parseFloat(document.getElementById("inDespHoras").value) || 0;
                 const desp = despHoras * PRECIO_HORA;
-                document.getElementById("outDesplaz").textContent = desp.toFixed(0);
+                document.getElementById("outDesplaz").textContent = desp.toFixed(0) + " $";
                 const subMO = mo + desp;
-                document.getElementById("outSubTotalMO").textContent = subMO.toFixed(2);
+                document.getElementById("outSubTotalMO").textContent = subMO.toFixed(2) + " $";
                 const ivaPctMO = parseFloat(document.getElementById("inIVA_MO").value) || 0;
                 const ivaMO = subMO * ivaPctMO / 100;
-                document.getElementById("outIVA_MO").textContent = ivaMO.toFixed(2);
-                document.getElementById("outTotalMOFinal").textContent = (subMO + ivaMO).toFixed(2);
+                document.getElementById("outIVA_MO").textContent = ivaMO.toFixed(2) + " $";
+                document.getElementById("outTotalMOFinal").textContent = (subMO + ivaMO).toFixed(2) + " $";
             }
 
             /* ── PIEZA ASOCIADA — MÚLTIPLES FILAS ────────────────── */
@@ -11088,13 +11107,13 @@
             /* ── VALIDATE ────────────────────────────────────────── */
             function _validate() {
                 const e = [];
-                if (!document.getElementById("inTecnico").value.trim()) e.push("Introduce el <b>Técnico</b>");
-                if (!document.getElementById("inCliente").value.trim()) e.push("Introduce el <b>Nombre del Cliente</b>");
-                if (!document.getElementById("inMotivo").value.trim()) e.push("Introduce el <b>Motivo de Servicio</b>");
-                if (sigTec.isEmpty()) e.push("Falta la <b>Firma del Técnico</b>");
-                if (sigCli.isEmpty()) e.push("Falta la <b>Firma del Cliente</b>");
-                if (!document.getElementById("inFirmaNombre").value.trim()) e.push("Introduce el <b>Nombre del Cliente</b>");
-                if (!document.getElementById("inFirmaDNI").value.trim()) e.push("Introduce el <b>DNI / NIF</b>");
+                if (!(document.getElementById("inTecnico")?.value?.trim())) e.push("Introduce el <b>Técnico</b>");
+                if (!(document.getElementById("inCliente")?.value?.trim())) e.push("Introduce el <b>Nombre del Cliente</b>");
+                if (!(document.getElementById("inMotivo")?.value?.trim())) e.push("Introduce el <b>Motivo de Servicio</b>");
+                if (!sigTec || sigTec.isEmpty()) e.push("Falta la <b>Firma del Técnico</b>");
+                if (!sigCli || sigCli.isEmpty()) e.push("Falta la <b>Firma del Cliente</b>");
+                if (!(document.getElementById("inFirmaNombre")?.value?.trim())) e.push("Introduce el <b>Nombre del Cliente</b>");
+                if (!(document.getElementById("inFirmaDNI")?.value?.trim())) e.push("Introduce el <b>DNI / NIF</b>");
                 return e;
             }
 
@@ -11104,16 +11123,18 @@
                 const piezas = [];
                 rows.forEach(tr => {
                     const rid = tr.id;
-                    const code = document.getElementById(rid + "-c").value;
+                    const cEl = document.getElementById(rid + "-c");
+                    if (!cEl) return;
+                    const code = cEl.value;
                     if (code) {
                         piezas.push({
                             codigo: code,
-                            descripcion: document.getElementById(rid + "-d").value,
-                            cantidad: parseInt(document.getElementById(rid + "-q").value) || 1,
-                            precio: parseFloat(document.getElementById(rid + "-pr").value) || 0,
-                            monto: parseFloat(document.getElementById(rid + "-mt").value) || 0,
-                            accionRealizada: document.getElementById(rid + "-a").value,
-                            problemaDetectado: document.getElementById(rid + "-p").value,
+                            descripcion: document.getElementById(rid + "-d")?.value || "",
+                            cantidad: parseInt(document.getElementById(rid + "-q")?.value) || 1,
+                            precio: parseFloat(document.getElementById(rid + "-pr")?.value) || 0,
+                            monto: parseFloat(document.getElementById(rid + "-mt")?.value) || 0,
+                            accionRealizada: document.getElementById(rid + "-a")?.value || "",
+                            problemaDetectado: document.getElementById(rid + "-p")?.value || "",
                         });
                     }
                 });
@@ -11133,33 +11154,33 @@
                     const checked = document.querySelector('input[name="' + name + '"]:checked');
                     verificaciones[name] = checked ? checked.value : "";
                 });
-                verificaciones.segundaFuente = document.getElementById("selSegundaFuente").value;
-                verificaciones.retiroMotivo = document.getElementById("selRetiroMotivo").value;
-                verificaciones.codAutorizacion = document.getElementById("inCodAutorizacion").value;
+                verificaciones.segundaFuente = document.getElementById("selSegundaFuente")?.value || "";
+                verificaciones.retiroMotivo = document.getElementById("selRetiroMotivo")?.value || "";
+                verificaciones.codAutorizacion = document.getElementById("inCodAutorizacion")?.value || "";
 
                 return {
                     ordenId,
-                    modelo: document.getElementById("inModelo").value,
-                    serie: document.getElementById("inSerie").value,
-                    fechaServicio: document.getElementById("inFechaServicio").value,
-                    horas: document.getElementById("inHoras").value,
-                    tecnico: document.getElementById("inTecnico").value,
+                    modelo: document.getElementById("inModelo")?.value || "",
+                    serie: document.getElementById("inSerie")?.value || "",
+                    fechaServicio: document.getElementById("inFechaServicio")?.value || "",
+                    horas: document.getElementById("inHoras")?.value || "",
+                    tecnico: document.getElementById("inTecnico")?.value || "",
                     cliente: {
-                        tienda: document.getElementById("inNoTienda").value,
-                        facturar: document.getElementById("inFacturar").value,
-                        nombre: document.getElementById("inCliente").value,
-                        direccion: document.getElementById("inDireccion").value,
-                        pais: document.getElementById("selPais").options[document.getElementById("selPais").selectedIndex]?.text || "",
-                        provincia: document.getElementById("selProvincia").value,
-                        ciudad: document.getElementById("selCiudad").value,
-                        telefono: document.getElementById("inTelefono").value,
+                        tienda: document.getElementById("inNoTienda")?.value || "",
+                        facturar: document.getElementById("inFacturar")?.value || "",
+                        nombre: document.getElementById("inCliente")?.value || "",
+                        direccion: document.getElementById("inDireccion")?.value || "",
+                        pais: document.getElementById("selPais")?.options[document.getElementById("selPais")?.selectedIndex]?.text || "",
+                        provincia: document.getElementById("selProvincia")?.value || "",
+                        ciudad: document.getElementById("selCiudad")?.value || "",
+                        telefono: document.getElementById("inTelefono")?.value || "",
                     },
-                    motivoServicio: document.getElementById("inMotivo").value.trim(),
-                    tipoFalla: document.getElementById("selTipoFalla").value,
-                    tipoFallaTexto: document.getElementById("selTipoFalla").options[document.getElementById("selTipoFalla").selectedIndex]?.text || "",
-                    resolucion: document.getElementById("inResolucion").value,
-                    codReparacion: document.getElementById("inCodReparacion").value,
-                    tipoRefrigerante: document.getElementById("inTipoRefrig").value,
+                    motivoServicio: document.getElementById("inMotivo")?.value?.trim() || "",
+                    tipoFalla: document.getElementById("selTipoFalla")?.value || "",
+                    tipoFallaTexto: document.getElementById("selTipoFalla")?.options[document.getElementById("selTipoFalla")?.selectedIndex]?.text || "",
+                    resolucion: document.getElementById("inResolucion")?.value || "",
+                    codReparacion: document.getElementById("inCodReparacion")?.value || "",
+                    tipoRefrigerante: document.getElementById("inTipoRefrig")?.value || "",
                     piezas,
                     piezaAsociada: (() => {
                         const items = [];
@@ -11170,32 +11191,32 @@
                         });
                         return items;
                     })(),
-                    servicioEfectuado: document.getElementById("inServicio").value.trim(),
+                    servicioEfectuado: document.getElementById("inServicio")?.value?.trim() || "",
                     verificaciones,
                     checkboxes: checks,
                     ajustes: adj,
-                    comentarios: document.getElementById("inComentarios").value,
+                    comentarios: document.getElementById("inComentarios")?.value || "",
                     firmas: {
                         tecnico: sigTec.isEmpty() ? null : sigTec.toDataURL("image/png"),
                         cliente: sigCli.isEmpty() ? null : sigCli.toDataURL("image/png"),
                     },
                     firmaDatos: {
-                        nombre: document.getElementById("inFirmaNombre").value.trim(),
-                        dni: document.getElementById("inFirmaDNI").value.trim(),
-                        posicion: document.getElementById("inPosicion").value.trim(),
+                        nombre: document.getElementById("inFirmaNombre")?.value?.trim() || "",
+                        dni: document.getElementById("inFirmaDNI")?.value?.trim() || "",
+                        posicion: document.getElementById("inPosicion")?.value?.trim() || "",
                     },
                     totales: {
-                        totalRepuestos: document.getElementById("outTotalRep").textContent,
-                        totalManoObra: document.getElementById("outTotalMO").textContent,
-                        desplazamiento: document.getElementById("outDesplaz").textContent,
-                        horasDesplazamiento: document.getElementById("inDespHoras").value,
-                        otros: document.getElementById("inMisc").value,
-                        subTotalEur: document.getElementById("outSubTotal").textContent,
-                        ivaEur: document.getElementById("outIVA").textContent,
-                        totalEur: document.getElementById("outTotal").textContent,
-                        subTotalMO: document.getElementById("outSubTotalMO").textContent,
-                        ivaMO: document.getElementById("outIVA_MO").textContent,
-                        totalMO: document.getElementById("outTotalMOFinal").textContent,
+                        totalRepuestos: document.getElementById("outTotalRep")?.textContent || "0",
+                        totalManoObra: document.getElementById("outTotalMO")?.textContent || "0",
+                        desplazamiento: document.getElementById("outDesplaz")?.textContent || "0",
+                        horasDesplazamiento: document.getElementById("inDespHoras")?.value || "0",
+                        otros: document.getElementById("inMisc")?.value || "0",
+                        subTotalEur: document.getElementById("outSubTotal")?.textContent || "0",
+                        ivaEur: document.getElementById("outIVA")?.textContent || "0",
+                        totalEur: document.getElementById("outTotal")?.textContent || "0",
+                        subTotalMO: document.getElementById("outSubTotalMO")?.textContent || "0",
+                        ivaMO: document.getElementById("outIVA_MO")?.textContent || "0",
+                        totalMO: document.getElementById("outTotalMOFinal")?.textContent || "0",
                     },
                     timestamp: new Date().toISOString(),
                 };
@@ -11205,26 +11226,30 @@
             async function _genPDF() {
                 _closePortal();
                 if (_portal) _portal.style.display = "none";
+                // Scroll to top to ensure clean capture
+                window.scrollTo(0, 0);
                 document.body.classList.add("pdf-mode");
                 const el = document.getElementById("ordenServicio");
                 void el.offsetHeight;
-                await new Promise(r => setTimeout(r, 250));
+                await new Promise(r => setTimeout(r, 300));
 
                 // Canvas → IMG for signatures
                 const canvasSwaps = [];
                 el.querySelectorAll(".sig-box").forEach(canvas => {
-                    const img = document.createElement("img");
-                    img.src = canvas.toDataURL("image/png");
-                    img.style.width = "100%";
-                    img.style.height = canvas.offsetHeight + "px";
-                    img.style.display = "block";
-                    img.style.border = "2px dashed #e5e7eb";
-                    img.style.borderRadius = "8px";
-                    img.style.background = "#fafbfc";
-                    img.style.objectFit = "contain";
-                    canvas.style.display = "none";
-                    canvas.parentNode.insertBefore(img, canvas.nextSibling);
-                    canvasSwaps.push({ canvas, img });
+                    try {
+                        const img = document.createElement("img");
+                        img.src = canvas.toDataURL("image/png");
+                        img.style.width = "100%";
+                        img.style.height = (canvas.offsetHeight || 60) + "px";
+                        img.style.display = "block";
+                        img.style.border = "2px dashed #e5e7eb";
+                        img.style.borderRadius = "8px";
+                        img.style.background = "#fafbfc";
+                        img.style.objectFit = "contain";
+                        canvas.style.display = "none";
+                        canvas.parentNode.insertBefore(img, canvas.nextSibling);
+                        canvasSwaps.push({ canvas, img });
+                    } catch (e) { console.warn("Canvas swap error", e); }
                 });
                 void el.offsetHeight;
                 await new Promise(r => setTimeout(r, 150));
@@ -11268,9 +11293,9 @@
                 }
                 await new Promise(r => setTimeout(r, 100));
 
-                const nombre = (document.getElementById("inCliente").value.trim().replace(/\s+/g, "_")) || "SinCliente";
+                const nombre = (document.getElementById("inCliente")?.value?.trim()?.replace(/\s+/g, "_")) || "SinCliente";
                 // Convert date to DD-MM-YYYY format for PDF footer
-                const rawFecha = document.getElementById("inFechaServicio").value || "";
+                const rawFecha = document.getElementById("inFechaServicio")?.value || "";
                 let fechaPDF = rawFecha;
                 if (rawFecha && rawFecha.includes("-") && rawFecha.length === 10) {
                     const parts = rawFecha.split("-");
@@ -11278,11 +11303,24 @@
                 }
                 const filename = "Orden_" + ordenId + "_" + nombre + ".pdf";
 
+                // Get exact rendered dimensions for precise capture
+                const elRect = el.getBoundingClientRect();
                 const opts = {
                     margin: [MARGIN_TOP, MARGIN_LR, MARGIN_BOT, MARGIN_LR],
                     filename,
-                    image: { type: "jpeg", quality: 0.94 },
-                    html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: "#ffffff", width: 794, windowWidth: 794, scrollX: 0, scrollY: 0, x: 0, y: 0 },
+                    image: { type: "jpeg", quality: 0.95 },
+                    html2canvas: {
+                        scale: 2,
+                        useCORS: true,
+                        logging: false,
+                        backgroundColor: "#ffffff",
+                        width: 794,
+                        windowWidth: 794,
+                        scrollX: 0,
+                        scrollY: -window.scrollY,
+                        x: 0,
+                        y: 0,
+                    },
                     jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
                     pagebreak: { mode: [] },
                 };
