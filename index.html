@@ -89,7 +89,8 @@
             .hdr-grid{font-size:10px}
             .grid-2{grid-template-columns:1fr!important}
             .grid-3{grid-template-columns:1fr!important}
-            .firmas-grid{flex-direction:column!important}
+            .firmas-grid{grid-template-columns:1fr!important}
+            .firmas-grid>div[style*="grid-column:2"]{grid-column:1!important;grid-row:auto!important}
             .pt{font-size:9px}
             .pt thead th{font-size:7px;padding:5px 3px}
             .pt tbody td{padding:3px 2px}
@@ -103,10 +104,10 @@
         body.pdf-mode .grid-2{grid-template-columns:1fr 1fr!important}
         body.pdf-mode .grid-3{grid-template-columns:1fr 1fr 1fr!important}
         body.pdf-mode .firmas-sec{page-break-inside:avoid!important;break-inside:avoid!important}
-        body.pdf-mode .firmas-grid{flex-direction:row!important}
-        body.pdf-mode .sig-wrap{min-height:55px!important}
+        body.pdf-mode .firmas-grid{grid-template-columns:1fr 1fr!important;column-gap:24px!important}
+        body.pdf-mode .firmas-grid .sig-box{height:60px!important}
         body.pdf-mode .firmas-grid .fl{font-size:7px!important}
-        body.pdf-mode .firmas-grid input.fi{padding:3px 2px!important;margin-bottom:6px!important;font-size:11px!important}
+        body.pdf-mode .firmas-grid input.fi{padding:3px 2px!important;font-size:10px!important}
         /* Compact sections in PDF */
         body.pdf-mode .sec{padding:10px 18px!important}
         body.pdf-mode .sec-title{margin-bottom:8px!important;font-size:10px!important}
@@ -395,31 +396,30 @@ const N8N_POST_DATA_URL = "YOUR_N8N_POST_DATA_URL";
     <!-- ── FIRMAS ─────────────────────────────────────────────── -->
     <div class="sec firmas-sec" style="border-bottom:none">
         <div class="sec-title">Firmas de Conformidad</div>
-        <div style="display:flex;gap:32px;align-items:stretch" class="firmas-grid">
-            <!-- Col Izq: Técnico -->
-            <div style="flex:1;display:flex;flex-direction:column">
-                <span class="fl">Nombre Técnico</span>
-                <input type="text" id="outNombreTec" class="fi" readonly style="font-weight:500;font-size:14px;padding:6px 2px;margin-bottom:12px">
-                <span class="fl">Firma</span>
-                <div class="sig-wrap" style="flex:1;position:relative;min-height:80px">
-                    <canvas id="sigTecnico" class="sig-box" style="position:absolute;top:0;left:0;width:100%;height:100%"></canvas>
-                </div>
-                <button type="button" onclick="App.clearSig('tec')" class="btn-sec no-print" style="margin-top:6px;font-size:10px;padding:3px 10px;align-self:flex-start">✕ Borrar</button>
-            </div>
-            <!-- Col Der: Cliente -->
-            <div style="flex:1;display:flex;flex-direction:column">
-                <span class="fl">Nombre del Cliente *</span>
-                <input type="text" class="fi" id="inFirmaNombre" style="font-weight:500;font-size:14px;padding:6px 2px;margin-bottom:12px">
-                <span class="fl">Posición / Cargo</span>
-                <input type="text" class="fi" id="inPosicion" style="padding:6px 2px;margin-bottom:12px">
-                <span class="fl">DNI / NIF *</span>
-                <input type="text" class="fi" id="inFirmaDNI" style="padding:6px 2px;margin-bottom:12px">
-                <span class="fl">Firma del Cliente</span>
-                <div class="sig-wrap" style="flex:1;position:relative;min-height:80px">
-                    <canvas id="sigCliente" class="sig-box" style="position:absolute;top:0;left:0;width:100%;height:100%"></canvas>
-                </div>
-                <button type="button" onclick="App.clearSig('cli')" class="btn-sec no-print" style="margin-top:6px;font-size:10px;padding:3px 10px;align-self:flex-start">✕ Borrar</button>
-            </div>
+        <div class="firmas-grid" style="display:grid;grid-template-columns:1fr 1fr;column-gap:32px;row-gap:0">
+            <!-- R1: Posición label (left only) -->
+            <div style="grid-column:1;grid-row:1;padding-top:2px"><span class="fl">Posición / Cargo</span></div>
+            <!-- R2: Posición input (left only) -->
+            <div style="grid-column:1;grid-row:2;padding-bottom:10px"><input type="text" class="fi" id="inPosicion" style="padding:6px 2px"></div>
+            <!-- R3: DNI label (left only) -->
+            <div style="grid-column:1;grid-row:3"><span class="fl">DNI / NIF *</span></div>
+            <!-- R4: DNI input (left only) -->
+            <div style="grid-column:1;grid-row:4;padding-bottom:10px"><input type="text" class="fi" id="inFirmaDNI" style="padding:6px 2px"></div>
+            <!-- R5: Nombre labels (BOTH) -->
+            <div style="grid-column:1;grid-row:5"><span class="fl">Nombre del Cliente *</span></div>
+            <div style="grid-column:2;grid-row:5"><span class="fl">Nombre Técnico</span></div>
+            <!-- R6: Nombre inputs (BOTH) -->
+            <div style="grid-column:1;grid-row:6;padding-bottom:10px"><input type="text" class="fi" id="inFirmaNombre" style="font-weight:500;padding:6px 2px"></div>
+            <div style="grid-column:2;grid-row:6;padding-bottom:10px"><input type="text" id="outNombreTec" class="fi" readonly style="font-weight:500;padding:6px 2px"></div>
+            <!-- R7: Firma labels (BOTH) -->
+            <div style="grid-column:1;grid-row:7"><span class="fl">Firma del Cliente</span></div>
+            <div style="grid-column:2;grid-row:7"><span class="fl">Firma</span></div>
+            <!-- R8: Firma canvases (BOTH — same row = perfectly aligned) -->
+            <div style="grid-column:1;grid-row:8"><canvas id="sigCliente" class="sig-box" width="100" height="80" style="height:100px;width:100%"></canvas></div>
+            <div style="grid-column:2;grid-row:8"><canvas id="sigTecnico" class="sig-box" width="100" height="80" style="height:100px;width:100%"></canvas></div>
+            <!-- R9: Borrar buttons (BOTH) -->
+            <div style="grid-column:1;grid-row:9;padding-top:6px" class="no-print"><button type="button" onclick="App.clearSig('cli')" class="btn-sec" style="font-size:10px;padding:3px 10px">✕ Borrar</button></div>
+            <div style="grid-column:2;grid-row:9;padding-top:6px" class="no-print"><button type="button" onclick="App.clearSig('tec')" class="btn-sec" style="font-size:10px;padding:3px 10px">✕ Borrar</button></div>
         </div>
     </div>
 
@@ -10124,10 +10124,8 @@ const App = (() => {
     }
     function _resizeC(c, p) {
         const r = Math.max(devicePixelRatio || 1, 1);
-        // Canvas is absolute-positioned inside .sig-wrap; read size from wrapper
-        const wrap = c.parentElement;
-        const b = wrap ? wrap.getBoundingClientRect() : c.getBoundingClientRect();
-        const w = b.width, h = b.height || 100;
+        const w = c.offsetWidth || c.parentElement.offsetWidth;
+        const h = c.offsetHeight || 100;
         c.width = w * r; c.height = h * r;
         c.getContext("2d").scale(r, r);
         p.clear();
@@ -10441,21 +10439,17 @@ const App = (() => {
         // Canvas → IMG for signatures
         const canvasSwaps = [];
         el.querySelectorAll(".sig-box").forEach(canvas => {
-            const wrap = canvas.parentElement;
-            const wrapRect = wrap.getBoundingClientRect();
             const img = document.createElement("img");
             img.src = canvas.toDataURL("image/png");
-            img.style.width = wrapRect.width + "px";
-            img.style.height = wrapRect.height + "px";
+            img.style.width = "100%";
+            img.style.height = canvas.offsetHeight + "px";
             img.style.display = "block";
             img.style.border = "2px dashed #e5e7eb";
             img.style.borderRadius = "8px";
             img.style.background = "#fafbfc";
             img.style.objectFit = "contain";
-            img.style.position = "absolute";
-            img.style.top = "0"; img.style.left = "0";
             canvas.style.display = "none";
-            wrap.appendChild(img);
+            canvas.parentNode.insertBefore(img, canvas.nextSibling);
             canvasSwaps.push({canvas, img});
         });
         void el.offsetHeight;
