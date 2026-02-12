@@ -773,6 +773,8 @@
          *   petición GET a esta URL y se espera un JSON con el campo
          *   "id", "orderId", "counter" o "numero".
          *   Ejemplo: https://tu-n8n.com/webhook/get-order-counter
+         *   ⚠️ ACTUALMENTE DESHABILITADO — se genera ID local automático.
+         *   Para activar, descomenta la línea y pon tu URL real.
          *
          * N8N_POST_DATA_URL:
          *   URL del webhook POST de n8n donde se envían los datos del
@@ -784,8 +786,8 @@
          *
          * ══════════════════════════════════════════════════════════════
          */
-        /*const N8N_GET_COUNTER_URL = "YOUR_N8N_GET_COUNTER_URL";── */
-        const N8N_POST_DATA_URL = "https://innovamaxn8n.innovatechmax.com/webhook/taylor_form";
+        // const N8N_GET_COUNTER_URL = "YOUR_N8N_GET_COUNTER_URL"; // Deshabilitado — se genera ID local
+        const N8N_POST_DATA_URL = "YOUR_N8N_POST_DATA_URL";
     </script>
 
 
@@ -805,13 +807,13 @@
                     <div style="font-size:24px;font-weight:700;letter-spacing:.12em;line-height:1">TAYLOR<span
                             style="font-size:8px;vertical-align:super;opacity:.5">&reg;</span></div>
                 </div>
-                <!--<div style="text-align:right">
+                <div style="text-align:right">
                     <div style="font-size:8px;opacity:.4;text-transform:uppercase;letter-spacing:.1em">No. de Orden
                     </div>
                     <div id="ordenIdText"
                         style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;letter-spacing:.05em;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);padding:4px 16px;border-radius:6px;margin-top:2px;min-width:100px;text-align:center">
                         ...</div>
-                </div>-->
+                </div>
             </div>
             <div class="hdr-grid">
                 <div class="hdr-cell"><span class="fl">Marca</span><span style="font-weight:600">TAYLOR</span></div>
@@ -825,7 +827,7 @@
                         placeholder="—"></div>
                 <div class="hdr-cell"><span class="fl">Quien llama</span><input type="text" id="inQuienLlama"
                         placeholder="—"></div>
-                <div class="hdr-cell"><span class="fl">Fecha de Instalación</span><input type="date" id="inFechaInstal"
+                <div class="hdr-cell"><span class="fl">Fecha de Instalación</span><input type="text" id="inFechaInstal"
                         placeholder="—"></div>
                 <div class="hdr-cell"><span class="fl">Teléfono</span><input type="tel" id="inTelefono" placeholder="—">
                 </div>
@@ -835,7 +837,7 @@
                         value="0" step="0.5" min="0" style="width:60px;font-size:11px" oninput="App.recalc()"></div>
                 <div class="hdr-cell"><span class="fl">Técnico</span><input type="text" id="inTecnico"
                         placeholder="Nombre del técnico"></div>
-                <div class="hdr-cell"><span class="fl">Nombre SAT</span><input type="text" id="inCliente"
+                <div class="hdr-cell"><span class="fl">Nombre SAT</span><input type="text" id="inNombreSAT"
                         placeholder="Nombre SAT"></div>
             </div>
         </div>
@@ -1124,47 +1126,39 @@
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px" class="tot-grid">
                 <!-- COL IZQ: Mano de Obra + Desplazamiento ($) -->
                 <div class="tot-block">
-                    <div class="tot-line"><span class="tot-label">Total Mano de Obra</span><span class="tot-val"
-                            id="outTotalMO">0 $</span></div>
-                    <div class="tot-line"><span class="tot-label"
-                            style="display:flex;align-items:center;gap:3px">Desplazamiento
+                    <div class="tot-line"><span class="tot-label">Total Mano de Obra</span><span class="tot-val" id="outTotalMO">0 $</span></div>
+                    <div class="tot-line"><span class="tot-label" style="display:flex;align-items:center;gap:3px">Desplazamiento
                             <input type="number" id="inDespHoras" value="0" min="0" step="0.5"
                                 style="width:36px;text-align:center;font-size:10px;border:1px solid #ddd;border-radius:3px;padding:1px 2px;font-family:'JetBrains Mono'"
                                 oninput="App.recalc()">h</span><span class="tot-val" id="outDesplaz">0 $</span></div>
-                    <div class="tot-line" style="font-weight:600"><span>Sub Total</span><span class="tot-val"
-                            id="outSubTotalMO">0.00 $</span></div>
+                    <div class="tot-line" style="font-weight:600"><span>Sub Total</span><span class="tot-val" id="outSubTotalMO">0.00 $</span></div>
                     <div class="tot-line"><span class="tot-label" style="display:flex;align-items:center;gap:3px">IVA
                             <input type="number" id="inIVA_MO" value="21" min="0" max="100" step="1"
                                 style="width:32px;text-align:center;font-size:10px;border:1px solid #ddd;border-radius:3px;padding:1px 2px;font-family:'JetBrains Mono'"
                                 oninput="App.recalc()">%</span>
                         <span class="tot-val" id="outIVA_MO">0.00 $</span>
                     </div>
-                    <div class="tot-line final"><span>TOTAL</span><span class="tot-val" id="outTotalMOFinal"
-                            style="color:var(--c-dark)">0.00 $</span></div>
+                    <div class="tot-line final"><span>TOTAL</span><span class="tot-val" id="outTotalMOFinal" style="color:var(--c-dark)">0.00 $</span></div>
                 </div>
                 <!-- COL DER: Repuestos + Otros (€) -->
                 <div class="tot-block">
-                    <div class="tot-line"><span class="tot-label">Total Repuestos</span><span class="tot-val"
-                            id="outTotalRep">0.00 €</span></div>
+                    <div class="tot-line"><span class="tot-label">Total Repuestos</span><span class="tot-val" id="outTotalRep">0.00 €</span></div>
                     <div class="tot-line"><span class="tot-label">Otros / Misc.</span>
                         <input type="number" class="fi" id="inMisc" value="0" min="0" step="0.01"
                             style="width:80px;text-align:right;font-family:'JetBrains Mono';font-size:12px;padding:2px 0"
                             oninput="App.recalc()">
                     </div>
-                    <div class="tot-line" style="font-weight:600"><span>Sub Total</span><span class="tot-val"
-                            id="outSubTotal">0.00 €</span></div>
+                    <div class="tot-line" style="font-weight:600"><span>Sub Total</span><span class="tot-val" id="outSubTotal">0.00 €</span></div>
                     <div class="tot-line"><span class="tot-label" style="display:flex;align-items:center;gap:3px">IVA
                             <input type="number" id="inIVA" value="21" min="0" max="100" step="1"
                                 style="width:32px;text-align:center;font-size:10px;border:1px solid #ddd;border-radius:3px;padding:1px 2px;font-family:'JetBrains Mono'"
                                 oninput="App.recalc()">%</span>
                         <span class="tot-val" id="outIVA">0.00 €</span>
                     </div>
-                    <div class="tot-line final"><span>TOTAL</span><span class="tot-val" id="outTotal"
-                            style="color:var(--c-dark)">0.00 €</span></div>
+                    <div class="tot-line final"><span>TOTAL</span><span class="tot-val" id="outTotal" style="color:var(--c-dark)">0.00 €</span></div>
                 </div>
             </div>
-            <div style="margin-top:8px;font-size:10px;color:var(--c-mid);font-style:italic;text-align:center">*Sujeto a
-                modificación/aprobación de fábrica*</div>
+            <div style="margin-top:8px;font-size:10px;color:var(--c-mid);font-style:italic;text-align:center">*Sujeto a modificación/aprobación de fábrica*</div>
         </div>
 
         <!-- ── COMENTARIOS ────────────────────────────────────────── -->
@@ -10865,28 +10859,22 @@
             }
 
             /* ── FETCH ORDER ID ──────────────────────────────────── */
-            /* ──async function _fetchOrderId() {
-                try {
-                    const d = await new Promise((resolve, reject) => {
-                        const xhr = new XMLHttpRequest();
-                        xhr.open("GET", N8N_GET_COUNTER_URL, true);
-                        xhr.timeout = 5000;
-                        xhr.onload = function () {
-                            if (xhr.status >= 200 && xhr.status < 300) resolve(JSON.parse(xhr.responseText));
-                            else reject(new Error("HTTP " + xhr.status));
-                        };
-                        xhr.onerror = () => reject(new Error("Red"));
-                        xhr.ontimeout = () => reject(new Error("Timeout"));
-                        xhr.send();
-                    });
-                    ordenId = d.id || d.orderId || d.counter || d.numero || "ERR";
-                } catch (e) {
-                    console.warn("n8n no disponible, ID temporal.", e);
-                    ordenId = "T-" + Date.now().toString(36).toUpperCase().slice(-6);
-                }
+            /*
+             * _fetchOrderId — Genera un ID de orden.
+             * Modo actual: ID local basado en fecha + código aleatorio.
+             * Para usar n8n: descomentar N8N_GET_COUNTER_URL arriba y
+             * reemplazar el cuerpo de esta función por la versión con XHR.
+             */
+            function _fetchOrderId() {
+                const now = new Date();
+                const dd = String(now.getDate()).padStart(2, '0');
+                const mm = String(now.getMonth() + 1).padStart(2, '0');
+                const yy = String(now.getFullYear()).slice(-2);
+                const rnd = Math.random().toString(36).substring(2, 6).toUpperCase();
+                ordenId = dd + mm + yy + "-" + rnd;
                 const el = document.getElementById("ordenIdText");
                 if (el) el.textContent = ordenId;
-            }── */
+            }
 
             /* ── TECH MEMORY ─────────────────────────────────────── */
             function _restoreTech() {
@@ -11130,16 +11118,17 @@
             function _validate() {
                 const e = [];
                 if (!(document.getElementById("inTecnico")?.value?.trim())) e.push("Introduce el <b>Técnico</b> (cabecera)");
-                if (!(document.getElementById("inCliente")?.value?.trim())) e.push("Introduce el <b>Nombre completo del SAT</b>");
+                if (!(document.getElementById("inCliente")?.value?.trim())) e.push("Introduce el <b>Nombre del Cliente</b> (datos del cliente)");
                 if (!(document.getElementById("inMotivo")?.value?.trim())) e.push("Introduce el <b>Motivo de Servicio</b>");
                 if (!sigTec || sigTec.isEmpty()) e.push("Falta la <b>Firma del Técnico</b>");
                 if (!sigCli || sigCli.isEmpty()) e.push("Falta la <b>Firma del Cliente</b>");
-                if (!(document.getElementById("inFirmaNombre")?.value?.trim())) e.push("Introduce el <b>Nombre del Cliente</b>");
+                if (!(document.getElementById("inFirmaNombre")?.value?.trim())) e.push("Introduce el <b>Nombre del Cliente</b> (firmas)");
                 if (!(document.getElementById("inFirmaDNI")?.value?.trim())) e.push("Introduce el <b>DNI / NIF</b>");
                 return e;
             }
 
-            /* ── COLLECT DATA ────────────────────────────────────── */            function _collectData() {
+            /* ── COLLECT DATA ────────────────────────────────────── */
+            function _collectData() {
                 const rows = document.querySelectorAll("#tblBody tr");
                 const piezas = [];
                 rows.forEach(tr => {
@@ -11270,7 +11259,7 @@
                         canvas.style.display = "none";
                         canvas.parentNode.insertBefore(img, canvas.nextSibling);
                         canvasSwaps.push({ canvas, img });
-                    } catch (e) { console.warn("Canvas swap error", e); }
+                    } catch(e) { console.warn("Canvas swap error", e); }
                 });
                 void el.offsetHeight;
                 await new Promise(r => setTimeout(r, 150));
@@ -11329,9 +11318,9 @@
                 const opts = {
                     margin: [MARGIN_TOP, MARGIN_LR, MARGIN_BOT, MARGIN_LR],
                     filename,
-                    image: { type: "jpeg", quality: 0.95 },
+                    image: { type: "jpeg", quality: 0.72 },
                     html2canvas: {
-                        scale: 2,
+                        scale: 1.5,
                         useCORS: true,
                         logging: false,
                         backgroundColor: "#ffffff",
@@ -11427,12 +11416,12 @@
             function _resetForm() {
                 // 1. Limpiar todos los inputs de texto, number, date, etc.
                 const textInputs = [
-                    "inModelo", "inSerie", "inFechaInstal", "inFechaServicio", "inFechaLlamada",
-                    "inHoraLlamada", "inQuienLlama", "inTelefono", "inTecnico", "inNombreSAT",
-                    "inNoTienda", "inFacturar", "inCliente", "inDireccion",
-                    "inMotivo", "inResolucion", "inCodReparacion", "inTipoRefrig",
-                    "inServicio", "inCodAutorizacion", "inComentarios",
-                    "inFirmaNombre", "inFirmaDNI", "inPosicion"
+                    "inModelo","inSerie","inFechaInstal","inFechaServicio","inFechaLlamada",
+                    "inHoraLlamada","inQuienLlama","inTelefono","inTecnico","inNombreSAT",
+                    "inNoTienda","inFacturar","inCliente","inDireccion",
+                    "inMotivo","inResolucion","inCodReparacion","inTipoRefrig",
+                    "inServicio","inCodAutorizacion","inComentarios",
+                    "inFirmaNombre","inFirmaDNI","inPosicion"
                 ];
                 textInputs.forEach(id => {
                     const el = document.getElementById(id);
@@ -11447,13 +11436,13 @@
                 });
 
                 // 3. Resetear selects a primera opción
-                ["selPais", "selProvincia", "selCiudad", "selTipoFalla", "selSegundaFuente", "selRetiroMotivo"].forEach(id => {
+                ["selPais","selProvincia","selCiudad","selTipoFalla","selSegundaFuente","selRetiroMotivo"].forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.selectedIndex = 0;
                 });
 
                 // 4. Limpiar checkboxes
-                ["chkSi", "chkNo"].forEach(id => {
+                ["chkSi","chkNo"].forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.checked = false;
                 });
@@ -11462,7 +11451,7 @@
                 document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
 
                 // 6. Limpiar ajustes técnicos
-                ["aLV", "aLPB", "aLPA", "aLTS", "aLTC", "aLTT", "aLVo", "aRV", "aRPB", "aRPA", "aRTS", "aRTC", "aRTT", "aRVo"].forEach(id => {
+                ["aLV","aLPB","aLPA","aLTS","aLTC","aLTT","aLVo","aRV","aRPB","aRPA","aRTS","aRTC","aRTT","aRVo"].forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.value = "";
                 });
