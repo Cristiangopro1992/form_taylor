@@ -17,7 +17,7 @@
         :root {
             --c-bg: #f4f5f7;
             --c-paper: #fff;
-            --c-dark: #2d282e;
+            --c-dark: #8c8f97;
             --c-mid: #6b7280;
             --c-light: #e5e7eb;
             --c-accent: #2563eb;
@@ -762,6 +762,28 @@
 
     <script>
         "use strict";
+        /*
+         * ══════════════════════════════════════════════════════════════
+         * CONFIGURACIÓN DE URLs DE n8n
+         * ══════════════════════════════════════════════════════════════
+         *
+         * N8N_GET_COUNTER_URL:
+         *   URL del webhook GET de n8n que devuelve el siguiente número
+         *   de orden disponible. Al cargar el formulario, se hace una
+         *   petición GET a esta URL y se espera un JSON con el campo
+         *   "id", "orderId", "counter" o "numero".
+         *   Ejemplo: https://tu-n8n.com/webhook/get-order-counter
+         *
+         * N8N_POST_DATA_URL:
+         *   URL del webhook POST de n8n donde se envían los datos del
+         *   formulario al pulsar "Finalizar y Enviar". Se envía un
+         *   FormData con dos campos:
+         *     - "datos": JSON string con todos los campos del formulario
+         *     - "pdf": archivo PDF generado automáticamente
+         *   Ejemplo: https://tu-n8n.com/webhook/receive-order
+         *
+         * ══════════════════════════════════════════════════════════════
+         */
         const N8N_GET_COUNTER_URL = "YOUR_N8N_GET_COUNTER_URL";
         const N8N_POST_DATA_URL = "https://innovamaxn8n.innovatechmax.com/webhook-test/taylor_form";
     </script>
@@ -783,13 +805,13 @@
                     <div style="font-size:24px;font-weight:700;letter-spacing:.12em;line-height:1">TAYLOR<span
                             style="font-size:8px;vertical-align:super;opacity:.5">&reg;</span></div>
                 </div>
-                <!-- <div style="text-align:right">
+                <div style="text-align:right">
                     <div style="font-size:8px;opacity:.4;text-transform:uppercase;letter-spacing:.1em">No. de Orden
                     </div>
                     <div id="ordenIdText"
                         style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;letter-spacing:.05em;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);padding:4px 16px;border-radius:6px;margin-top:2px;min-width:100px;text-align:center">
                         ...</div>
-                </div> -->
+                </div>
             </div>
             <div class="hdr-grid">
                 <div class="hdr-cell"><span class="fl">Marca</span><span style="font-weight:600">TAYLOR</span></div>
@@ -803,7 +825,7 @@
                         placeholder="—"></div>
                 <div class="hdr-cell"><span class="fl">Quien llama</span><input type="text" id="inQuienLlama"
                         placeholder="—"></div>
-                <div class="hdr-cell"><span class="fl">Fecha de Instalación</span><input type="text" id="inFechaInstal"
+                <div class="hdr-cell"><span class="fl">Fecha de Instalación</span><input type="date" id="inFechaInstal"
                         placeholder="—"></div>
                 <div class="hdr-cell"><span class="fl">Teléfono</span><input type="tel" id="inTelefono" placeholder="—">
                 </div>
@@ -814,7 +836,7 @@
                 <div class="hdr-cell"><span class="fl">Técnico</span><input type="text" id="inTecnico"
                         placeholder="Nombre del técnico"></div>
                 <div class="hdr-cell"><span class="fl">Nombre SAT</span><input type="text" id="inNombreSAT"
-                        placeholder="Nombre completo SAT"></div>
+                        placeholder="Nombre SAT"></div>
             </div>
         </div>
 
@@ -11107,8 +11129,8 @@
             /* ── VALIDATE ────────────────────────────────────────── */
             function _validate() {
                 const e = [];
-                if (!(document.getElementById("inTecnico")?.value?.trim())) e.push("Introduce el <b>Técnico</b>");
-                if (!(document.getElementById("inCliente")?.value?.trim())) e.push("Introduce el <b>Nombre del Cliente</b>");
+                if (!(document.getElementById("inTecnico")?.value?.trim())) e.push("Introduce el <b>Técnico</b> (cabecera)");
+                if (!(document.getElementById("inCliente")?.value?.trim())) e.push("Introduce el <b>Nombre completo del SAT</b>");
                 if (!(document.getElementById("inMotivo")?.value?.trim())) e.push("Introduce el <b>Motivo de Servicio</b>");
                 if (!sigTec || sigTec.isEmpty()) e.push("Falta la <b>Firma del Técnico</b>");
                 if (!sigCli || sigCli.isEmpty()) e.push("Falta la <b>Firma del Cliente</b>");
@@ -11117,8 +11139,7 @@
                 return e;
             }
 
-            /* ── COLLECT DATA ────────────────────────────────────── */
-            function _collectData() {
+            /* ── COLLECT DATA ────────────────────────────────────── */            function _collectData() {
                 const rows = document.querySelectorAll("#tblBody tr");
                 const piezas = [];
                 rows.forEach(tr => {
@@ -11393,11 +11414,87 @@
                         fd.append("pdf", blob, filename);
                         xhr.send(fd);
                     });
-                    Swal.fire({ icon: "success", title: "¡Orden Enviada!", html: '<p>Orden <b>' + ordenId + '</b> enviada correctamente.</p>', confirmButtonColor: "#111827" });
+                    await Swal.fire({ icon: "success", title: "¡Orden Enviada!", html: '<p>Orden <b>' + ordenId + '</b> enviada correctamente.</p><p style="font-size:.85rem;color:#666">El formulario se reiniciará.</p>', confirmButtonColor: "#111827" });
+                    // Resetear formulario completo tras envío exitoso
+                    _resetForm();
                 } catch (err) {
                     console.error(err);
                     Swal.fire({ icon: "error", title: "Error de Envío", html: '<p>' + err.message + '</p><p style="font-size:.8rem;color:#999">Verifica tu URL de n8n.</p>' });
                 }
+            }
+
+            /* ── RESET FORM ─────────────────────────────────────── */
+            function _resetForm() {
+                // 1. Limpiar todos los inputs de texto, number, date, etc.
+                const textInputs = [
+                    "inModelo", "inSerie", "inFechaInstal", "inFechaServicio", "inFechaLlamada",
+                    "inHoraLlamada", "inQuienLlama", "inTelefono", "inTecnico", "inNombreSAT",
+                    "inNoTienda", "inFacturar", "inCliente", "inDireccion",
+                    "inMotivo", "inResolucion", "inCodReparacion", "inTipoRefrig",
+                    "inServicio", "inCodAutorizacion", "inComentarios",
+                    "inFirmaNombre", "inFirmaDNI", "inPosicion"
+                ];
+                textInputs.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = "";
+                });
+
+                // 2. Resetear campos numéricos a sus valores por defecto
+                const numDefaults = { "inHoras": "0", "inDespHoras": "0", "inMisc": "0", "inIVA": "21", "inIVA_MO": "21" };
+                Object.entries(numDefaults).forEach(([id, def]) => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = def;
+                });
+
+                // 3. Resetear selects a primera opción
+                ["selPais", "selProvincia", "selCiudad", "selTipoFalla", "selSegundaFuente", "selRetiroMotivo"].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.selectedIndex = 0;
+                });
+
+                // 4. Limpiar checkboxes
+                ["chkSi", "chkNo"].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.checked = false;
+                });
+
+                // 5. Limpiar radio buttons (verificaciones)
+                document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+
+                // 6. Limpiar ajustes técnicos
+                ["aLV", "aLPB", "aLPA", "aLTS", "aLTC", "aLTT", "aLVo", "aRV", "aRPB", "aRPA", "aRTS", "aRTC", "aRTT", "aRVo"].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = "";
+                });
+
+                // 7. Limpiar tabla de piezas — quitar todas las filas y añadir una vacía
+                const tblBody = document.getElementById("tblBody");
+                if (tblBody) { tblBody.innerHTML = ""; rc = 0; }
+                addRow();
+
+                // 8. Limpiar piezas asociadas — quitar todas y añadir una vacía
+                const pzBody = document.getElementById("pzAsocBody");
+                if (pzBody) pzBody.innerHTML = "";
+                pac = 0;
+                addPzAsoc();
+
+                // 9. Limpiar firmas
+                if (sigTec) sigTec.clear();
+                if (sigCli) sigCli.clear();
+                const nomTec = document.getElementById("outNombreTec");
+                if (nomTec) nomTec.value = "";
+
+                // 10. Recalcular totales (todo a 0)
+                recalc();
+
+                // 11. Obtener nuevo número de orden
+                _fetchOrderId();
+
+                // 12. Scroll al inicio
+                window.scrollTo({ top: 0, behavior: "smooth" });
+
+                // 13. Restaurar nombre del técnico desde localStorage
+                _restoreTech();
             }
 
             return { init, addRow, delRow, onSearch, pick, addPzAsoc, delPzAsoc, pickPzAsoc, clearSig, downloadPDF, finalize, onPaisChange, onProvinciaChange, recalc };
