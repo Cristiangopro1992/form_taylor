@@ -11289,16 +11289,30 @@
             async function _genPDF() {
                 _closePortal();
                 if (_portal) _portal.style.display = "none";
-                // Scroll to top to ensure clean capture
                 window.scrollTo(0, 0);
-
-                // On mobile: temporarily widen viewport so CSS renders at 794px
-                const vpMeta = document.querySelector('meta[name="viewport"]');
-                const origVP = vpMeta ? vpMeta.getAttribute("content") : null;
-                if (vpMeta) vpMeta.setAttribute("content", "width=794");
 
                 document.body.classList.add("pdf-mode");
                 const el = document.getElementById("ordenServicio");
+
+                // Force explicit widths on DOM elements for mobile
+                // (on desktop these already match, so no visual change)
+                const savedStyles = {
+                    htmlW: document.documentElement.style.width,
+                    bodyW: document.body.style.width,
+                    bodyOv: document.body.style.overflow,
+                    bodyPos: document.body.style.position,
+                    elW: el.style.width,
+                    elMaxW: el.style.maxWidth,
+                    elPos: el.style.position,
+                };
+                document.documentElement.style.width = "794px";
+                document.body.style.width = "794px";
+                document.body.style.overflow = "hidden";
+                document.body.style.position = "relative";
+                el.style.width = "794px";
+                el.style.maxWidth = "794px";
+                el.style.position = "relative";
+
                 void el.offsetHeight;
                 await new Promise(r => setTimeout(r, 400));
 
@@ -11323,9 +11337,7 @@
                 void el.offsetHeight;
                 await new Promise(r => setTimeout(r, 150));
 
-                // Smart spacers: only push a section to next page if it would be
-                // split AND the amount visible on current page is <80px (just title).
-                // This prevents orphaned section titles while avoiding unnecessary blank space.
+                // Smart spacers
                 const MARGIN_TOP = 4, MARGIN_BOT = 12, MARGIN_LR = 4, PAGE_H = 297;
                 const PX_PER_MM = 794 / (210 - MARGIN_LR * 2);
                 const USABLE_H_PX = (PAGE_H - MARGIN_TOP - MARGIN_BOT) * PX_PER_MM;
@@ -11333,7 +11345,6 @@
 
                 for (let pass = 0; pass < 3; pass++) {
                     const elTop = el.getBoundingClientRect().top;
-                    // Target both .sec and the tipo/completado bar + header
                     const sections = el.querySelectorAll(".sec, .hdr");
                     sections.forEach(sec => {
                         if (sec.previousElementSibling && sec.previousElementSibling.classList.contains("pdf-spacer")) return;
@@ -11343,11 +11354,6 @@
                         const pageIdx = Math.floor(secTop / USABLE_H_PX);
                         const pageEnd = (pageIdx + 1) * USABLE_H_PX;
                         const visibleOnPage = pageEnd - secTop;
-                        // Only push to next page if:
-                        // 1. Section would be split (visibleOnPage < secH)
-                        // 2. Very little would show on current page (<80px = just title)
-                        //    OR it's the firmas section (must stay together)
-                        // 3. The section actually fits on a single page
                         const isFirmas = sec.classList.contains("firmas-sec");
                         const threshold = isFirmas ? secH : 80;
                         if (visibleOnPage < secH && visibleOnPage < threshold && secH <= USABLE_H_PX) {
@@ -11363,7 +11369,6 @@
                 await new Promise(r => setTimeout(r, 100));
 
                 const nombre = (document.getElementById("inCliente")?.value?.trim()?.replace(/\s+/g, "_")) || "SinCliente";
-                // Convert date to DD-MM-YYYY format for PDF footer
                 const rawFecha = document.getElementById("inFechaServicio")?.value || "";
                 let fechaPDF = rawFecha;
                 if (rawFecha && rawFecha.includes("-") && rawFecha.length === 10) {
@@ -11372,8 +11377,6 @@
                 }
                 const filename = "Orden_" + ordenId + "_" + nombre + ".pdf";
 
-                // Get exact rendered dimensions for precise capture
-                const elRect = el.getBoundingClientRect();
                 const opts = {
                     margin: [MARGIN_TOP, MARGIN_LR, MARGIN_BOT, MARGIN_LR],
                     filename,
@@ -11386,9 +11389,33 @@
                         width: 794,
                         windowWidth: 794,
                         scrollX: 0,
-                        scrollY: -window.scrollY,
+                        scrollY: 0,
                         x: 0,
                         y: 0,
+                        onclone: function(clonedDoc) {
+                            // Force widths in the cloned document (this is what html2canvas actually renders)
+                            clonedDoc.documentElement.style.width = "794px";
+                            clonedDoc.body.style.width = "794px";
+                            clonedDoc.body.style.margin = "0";
+                            clonedDoc.body.style.padding = "0";
+                            clonedDoc.body.style.overflow = "visible";
+                            const clonedEl = clonedDoc.getElementById("ordenServicio");
+                            if (clonedEl) {
+                                clonedEl.style.width = "794px";
+                                clonedEl.style.maxWidth = "794px";
+                                clonedEl.style.margin = "0";
+                                clonedEl.style.padding = "0";
+                                clonedEl.style.position = "relative";
+                                clonedEl.style.left = "0";
+                                clonedEl.style.top = "0";
+                            }
+                            // Remove any mobile-only scroll wrappers in clone
+                            clonedDoc.querySelectorAll(".tbl-scroll").forEach(w => {
+                                w.style.overflow = "visible";
+                                w.style.margin = "0";
+                                w.style.padding = "0";
+                            });
+                        }
                     },
                     jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
                     pagebreak: { mode: [] },
@@ -11397,9 +11424,15 @@
                 function _cleanup() {
                     spacers.forEach(s => s.remove());
                     canvasSwaps.forEach(({ canvas, img }) => { canvas.style.display = ""; img.remove(); });
+                    // Restore all original styles
+                    document.documentElement.style.width = savedStyles.htmlW;
+                    document.body.style.width = savedStyles.bodyW;
+                    document.body.style.overflow = savedStyles.bodyOv;
+                    document.body.style.position = savedStyles.bodyPos;
+                    el.style.width = savedStyles.elW;
+                    el.style.maxWidth = savedStyles.elMaxW;
+                    el.style.position = savedStyles.elPos;
                     document.body.classList.remove("pdf-mode");
-                    // Restore original viewport meta
-                    if (vpMeta && origVP) vpMeta.setAttribute("content", origVP);
                     if (_portal) _portal.style.display = "";
                 }
 
